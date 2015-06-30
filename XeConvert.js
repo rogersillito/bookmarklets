@@ -1,5 +1,5 @@
 javascript: (function() {
-    // Do a currency conversion at xe.com based on validated user input
+    /* Do a currency conversion at xe.com based on validated user input */
     var validateCurrency = function(c) {
         var currencies = ["USD","GBP","EUR"];
         c = c.toUpperCase();
