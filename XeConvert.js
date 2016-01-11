@@ -1,7 +1,7 @@
 javascript: (function() {
     /* Do a currency conversion at xe.com based on validated user input */
     var validateCurrency = function(c) {
-        var currencies = ["USD","GBP","EUR"];
+        var currencies = ["USD","GBP","EUR","NZD","AUD","SGD"];
         c = c.toUpperCase();
         if (currencies.indexOf(c) === -1)
             throw "Unexpected currency,  '" + c + "'";
