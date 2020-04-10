@@ -69,7 +69,7 @@ javascript: (function () {
     /* scroll to bottom, and print when done replacing images */
     Promise.all(replacedImages).then(im => {
         setTimeout(() => {
-            console.log(`Replaced ${im.length} images`)
+            console.log(`Replaced ${im.length} images`);
             window.scrollTo(0, document.body.scrollHeight);
             window.print();
         }, 0);
