@@ -18,39 +18,58 @@ javascript: (function () {
         }
         return false;
     }
+    const replacedImages = [];
+    const replacedImageKeys = {};
     function replaceImg(im, hiResUrl) {
-        const src = im.getAttributeNode('src');
-        return new Promise(resolve => {
-            const image = new Image();
-            image.onload = () => {
-                console.log(`Replaced: ${hiResUrl.substring(hiResUrl.lastIndexOf('/') + 1)}`);
-                src.nodeValue = hiResUrl;
-                resolve();
-            };
-            image.onerror = resolve;
-            image.src = hiResUrl;
-        });
+        const srcAttr = im.getAttributeNode('src');
+        function doReplace(im, hiResUrl) {
+            const imP = new Promise(resolve => {
+                const image = new Image();
+                image.onload = () => {
+                    console.log(`Replaced: ${hiResUrl.substring(hiResUrl.lastIndexOf('/') + 1)}`);
+                    srcAttr.nodeValue = hiResUrl;
+                    resolve();
+                };
+                image.onerror = resolve;
+                image.src = hiResUrl;
+            });
+            return imP;
+        }
+
+        /* prevent multiple replacements on the same src, hiRes pair */
+        const src = srcAttr.nodeValue;
+        if (replacedImageKeys[src] && replacedImageKeys[src] === hiResUrl) {
+            /* already replaced this one */
+            return;
+        }
+        replacedImageKeys[src] = hiResUrl;
+        replacedImages.push(doReplace(im, hiResUrl));
+    }
+    function doImageReplacementsFor(selector) {
+        const imgs = document.querySelectorAll(selector);
+        for (im of imgs) {
+            const hiResUrl = im.parentNode.getAttribute('href');
+            if (!isImage(hiResUrl)) {
+                continue;
+            }
+            replaceImg(im, hiResUrl);
+        }
     }
 
     /* Replace content images with Higer Res enlarged counterparts */
-    const imgs = document.querySelectorAll('img[typeof="foaf:Image"]');
-    const replaced = [];
-    for (im of imgs) {
-        const hiResUrl = im.parentNode.getAttribute('href');
-        if (!isImage(hiResUrl)) {
-            continue;
-        }
-        replaced.push(replaceImg(im, hiResUrl));
-    }
+    doImageReplacementsFor('img[typeof="foaf:Image"]');
+    doImageReplacementsFor('.media-image-right a img');
+    doImageReplacementsFor('.media-image-header a img');
 
     /* Replace header image with better quality one */
     const headerIm = document.querySelector('.site-logo');
     const newLogoUrl = 'https://www.synthax.co.uk/latest/wp-content/uploads/2018/06/Sound-On-Sound-Logo.png';
-    replaced.push(replaceImg(headerIm, newLogoUrl));
+    replaceImg(headerIm, newLogoUrl);
 
     /* scroll to bottom, and print when done replacing images */
-    Promise.all(replaced).then(im => {
+    Promise.all(replacedImages).then(im => {
         setTimeout(() => {
+            console.log(`Replaced ${im.length} images`)
             window.scrollTo(0, document.body.scrollHeight);
             window.print();
         }, 0);
