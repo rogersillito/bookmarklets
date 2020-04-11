@@ -60,6 +60,7 @@ javascript: (function () {
     doImageReplacementsFor('img[typeof="foaf:Image"]');
     doImageReplacementsFor('.media-image-right a img');
     doImageReplacementsFor('.media-image-header a img');
+    doImageReplacementsFor('.media-image-left a img');
 
     /* Replace header image with better quality one */
     const headerIm = document.querySelector('.site-logo');
