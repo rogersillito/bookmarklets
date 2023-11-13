@@ -1,0 +1,14 @@
+{
+  "name": "bookmarklets",
+  "version": "1.0.0",
+  "description": "my useful bookmarklet js utils",
+  "scripts": {
+    "compile": "bash ./compile-all.sh",
+    "help": "bookmarklet -h"
+  },
+  "author": "Roger Sillito",
+  "license": "ISC",
+  "dependencies": {
+    "bookmarklet": "^3.0.0"
+  }
+}
