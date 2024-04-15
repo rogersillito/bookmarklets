@@ -1,11 +1,12 @@
 const albumNodes = document.querySelectorAll('grid-library-album');
-//const dotMenuNodes = document.querySelectorAll('library-item-context-menu button');
-const menuWaitMs = 750;
-const downloadWaitMs = 90 * 1000; // 90s
-let downloadCount = 0;
-
+const waitMs = 500;
 const log = console.log.bind(console);
 
+let downloadCount = 0;
+let firstAlbum = 1;
+let lastAlbum = albumNodes.length;
+
+// eMusic popup/snack bar HTML:
 /*
 <div id="cdk-overlay-0" class="cdk-overlay-pane" style="position: static;">
    <ul _ngcontent-slk-c114="" role="menu" cdkmenu="" class="cdk-menu cdk-menu-group regular-context-menu ng-star-inserted" tabindex="0" id="cdk-menu-14" aria-orientation="vertical" data-cdk-menu-stack-id="1">
@@ -37,12 +38,28 @@ const log = console.log.bind(console);
 </snack-bar-container>
 */
 
-if (albumNodes.length) {
-    log("Albums/Menu nodes = ", albumNodes.length);
-    doDownload(0);
+const isIntegerString = function(str) {
+    var n = Math.floor(Number(str));
+    return n !== Infinity && String(n) === str && n >= 0;
 }
 
-function doDownload(nodeIdx) {
+const promptErr = function(errStr) {
+    alert(errStr);
+    throw errStr;
+};
+
+const validateAlbumInput = function(input) {
+    const n = input.trim();
+    if (!isIntegerString(n)) {
+        promptErr("Amount must be an integer value, '" + n + "'");
+    }
+    if (n < firstAlbum || n > lastAlbum) {
+        promptErr(`Value outside valid range: ${firstAlbum}-${lastAlbum}`);
+    }
+    return n/1;
+};
+
+const doDownload = function(nodeIdx) {
     log("DOWNLOADING: " + albumNodes[nodeIdx].innerText.replaceAll('\n',' '));
     const dotMenu = albumNodes[nodeIdx].querySelector('library-item-context-menu button');
     dotMenu.click();
@@ -51,8 +68,8 @@ function doDownload(nodeIdx) {
             if (menuEl.innerText.trim() === 'Download Album') 
             { 
                 menuEl.querySelector('button').click();
-                waitForElm('snack-bar-container .body').then(dlEl => {
-                    if (dlEl.innerText.includes("Download")) {
+                waitForElm('snack-bar-container .body').then(dlWorkingEl => {
+                    if (dlWorkingEl.innerText.includes("Download")) {
                         log("waiting...");
                         let waitIntvl = 0;
                         waitIntvl = setInterval(() => {
@@ -60,42 +77,28 @@ function doDownload(nodeIdx) {
                             if (!childElms) {
                                 log("complete");
                                 clearInterval(waitIntvl);
-                                setTimeout(() => doNextDownload(nodeIdx), 500);
+                                setTimeout(() => doNextDownload(nodeIdx), waitMs);
                             }
-                        }, 500);
+                        }, waitMs);
                     }
                 }).catch(log);
             }
         });
     }).catch(log);
-    /*
-    setTimeout(() => {
-        const downloadLink = document.querySelectorAll('.cdk-overlay-container')[0].children[1];
-        console.log(downloadLink);
-        downloadLink.click();
-        setTimeout(() => {
-            const nextIdx = nodeIdx + 1;
-            if (nextIdx == dotMenuNodes.length) {
-                console.log(`Download complete: ${dotMenuNodes.length} done`);
-            } else {
-                doDownload(nextIdx);
-            }
-        }, downloadWaitMs);
-    }, menuWaitMs);
-    */
 }
 
-function doNextDownload(nodeIdx) {
+const doNextDownload = function(nodeIdx) {
+    downloadCount++;
     const nextIdx = nodeIdx + 1;
-    if (nextIdx == dotMenuNodes.length) {
-        log(`Download ${nodeIdx + 1} complete: ${downloadCount} done`);
+    if (nextIdx == lastAlbum) {
+        log(`Download ${firstAlbum}-${lastAlbum} complete: ${downloadCount} done`);
     } else {
-        downloadCount++;
         doDownload(nextIdx);
     }
 }
 
-function waitForElm(selector) {
+// from https://stackoverflow.com/a/61511955/998793
+const waitForElm = function(selector) {
     return new Promise(resolve => {
         if (document.querySelector(selector)) {
             return resolve(document.querySelector(selector));
@@ -114,4 +117,11 @@ function waitForElm(selector) {
             subtree: true
         });
     });
+}
+
+if (albumNodes.length) {
+    const total = `Albums = ${albumNodes.length}, `;
+    firstAlbum = validateAlbumInput(prompt(total + "Set FIRST album to download:", firstAlbum));
+    lastAlbum = validateAlbumInput(prompt(total + "Set LAST album to download:", lastAlbum));
+    doDownload(firstAlbum - 1);
 }
