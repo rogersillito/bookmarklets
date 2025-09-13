@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
+const rootNames = ['bookmark_bar','other', 'synced'];
+
 /**
  * regenChecksum from gist: calculate Chrome bookmark checksum
  * Takes the `roots` object (bookmark_bar, other, synced)
@@ -39,10 +41,7 @@ function regenChecksum(roots) {
     }
   };
 
-  // calls updateDigest on bookmark_bar, other, synced in necessary order (as per gist)
-  updateDigest(roots['bookmark_bar']);
-  updateDigest(roots['other']);
-  updateDigest(roots['synced']);
+  rootNames.forEach(rn => updateDigest(roots[rn]));
 
   return digest.digest('hex');
 }
@@ -65,6 +64,7 @@ function main() {
     }
 
     const checksum = regenChecksum(bookmarks.roots);
+
     console.log(checksum);
 
   } catch (err) {
