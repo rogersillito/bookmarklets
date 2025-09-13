@@ -1,0 +1,1 @@
+document.querySelector('footer').parentElement.removeChild(document.querySelector('footer'));
