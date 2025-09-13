@@ -2,8 +2,7 @@
 
 EXIT_STATUS=0
 
-# f="/D/DEV/bookmarklets/compiled/sosArticleStrip.js"
-# Ensure the file path was passed
+# Ensure a file path is passed
 if [ $# -lt 1 ] || [ -z "$1" ]; then
     echo "Usage: $0 <path-to-js-file>"
     exit 1
